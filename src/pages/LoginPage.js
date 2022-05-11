@@ -1,27 +1,48 @@
 import React from "react";
 import Input from "../components/Input";
+import ButtonWithProgress from "../components/ButtonWithProgress";
 
 export class LoginPage extends React.Component{
     state = {
         username: '',
         password: '',
+        errors: undefined,
+        pendingApiCall: false
     }
 
     onChangeName = (event) => {  
         const value = event.target.value;
-        this.setState({username: value});
+        this.setState({username: value, errors: undefined});
     };
 
     onChangePassword = (event) => {  
         const value = event.target.value;
-        this.setState({password: value});
+        this.setState({password: value, errors: undefined});
     };
 
     onClickLogin = () => {
-        this.props.actions.postLogin();
+        const user = {
+            username: this.state.username,
+            password: this.state.password
+        }
+        this.setState({pendingApiCall:true})
+        this.props.actions.postLogin(user).catch(
+            error => {
+                if(error.response){
+                    this.setState({errors: error.response.data.message})
+                }
+            }
+        );
     }
 
     render(){
+        let disableSubmit = false;
+        if(this.state.username === ''){
+            disableSubmit = true;
+        }
+        if(this.state.password === ''){
+            disableSubmit = true;
+        }
         return(
             <div className="container">
                 <h1 className="text-center">Login</h1>
@@ -42,10 +63,20 @@ export class LoginPage extends React.Component{
                         onChange={this.onChangePassword}
                     />
                 </div>
+                {
+                    this.state.errors && (
+                        <div className="col-12 mb-3">
+                            <div className="alert alert-danger">
+                                {this.state.errors}
+                            </div>
+                        </div>
+                    )
+                }
 
-                <button className="btn btn-primary" onClick={this.onClickLogin}>
-                        Login
-                    </button>
+                <ButtonWithProgress onClick={this.onClickLogin} 
+                                    disabled={disableSubmit || this.state.pendingApiCall}
+                                    pendingApiCall={this.state.pendingApiCall}
+                                    text="Login"/>
             </div>
         )
     }
