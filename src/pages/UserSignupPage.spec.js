@@ -334,6 +334,21 @@ describe('UserSignupPage', () => {
             const errorMessage = queryByText('Password cannot be null');
             expect(errorMessage).not.toBeInTheDocument();
         })
+
+        it('redirect to homePage after successful signup', async () => {
+            const actions = {
+                postSignup: jest.fn().mockResolvedValue({})
+            }
+            const history = {
+                push: jest.fn()
+            }
+            setupForSubmit({actions, history})
+            fireEvent.click(button)
+
+            await waitForDomChange();
+
+            expect(history.push).toHaveBeenCalledWith('/')
+        })
     })
 });
 
